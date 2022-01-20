@@ -45,7 +45,7 @@ async function handleTargetResource() {
     try {
         let sqs = new AWS.SQS(options);
         const data = await retry(async (context) => {
-            console.log("attempt remaining: " + context.attemptsRemaining);
+            console.log("Attempts remaining: " + context.attemptsRemaining);
             return sqs.createQueue({
                     QueueName: targetName
             }).promise();
@@ -58,7 +58,7 @@ async function handleTargetResource() {
             maxDelay: 10000, 
             handleError (err, context) {
                 console.log("error: " + err);
-                console.log("attemped: " + context.attemptNum);
+                console.log("Attempted times: " + context.attemptNum);
             }
         });
         console.log("Response: ", data);
