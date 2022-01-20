@@ -4,69 +4,64 @@ let iam = new AWS.IAM();
 const roleName = "read-admin-role"
 const roleArn = "arn:aws:iam::730508922179:role/" + roleName;
 const startTime = (new Date()).getTime();
-let retriedNumber = 0;
-const retries = 10;
+const retry = require('@lifeomic/attempt').retry;
 
 let args = process.argv.slice(2)
 
 const targetRole = args[0]; //admin_role Test-Role
 console.log("Trying to read role: ", targetRole, "at: ", startTime);
 
+
 async function fetchRoleInfo() {
-let params = {
-    RoleName: roleName,
-    Tags: [
-        {
-            Key: "resourceName",
-            Value: targetRole
-        }
-    ]
-};
 
-let res = await iam.tagRole(params).promise();
-console.log("Tagging response: ", res);
+    //Tag role with key as "resourceName" and specific role name as its value
+    let res = await iam.tagRole({
+        RoleName: roleName,
+        Tags: [
+            {
+                Key: "resourceName",
+                Value: targetRole
+            }
+        ]
+    }).promise();
 
-params = {
-  RoleArn: roleArn,
-  RoleSessionName: `role-name-${startTime}`
-};
+    console.log("Tagging response: ", res);
 
-const data = await sts.assumeRole(params).promise();
+    //Assume role to gain permissions to read role with specific name
+    res = await sts.assumeRole({
+        RoleArn: roleArn,
+        RoleSessionName: `role-name-${startTime}`
+    }).promise();
 
-console.log("Credentials:", JSON.stringify({
-  accessKeyId: data.Credentials.AccessKeyId,
-  secretAccessKey: data.Credentials.SecretAccessKey,
-  sessionToken: data.Credentials.SessionToken,
-}));
-
-fetchRoleInfoWithRetries({
-    accessKeyId: data.Credentials.AccessKeyId,
-    secretAccessKey: data.Credentials.SecretAccessKey,
-    sessionToken: data.Credentials.SessionToken
-});
-
-};
-
-async function fetchRoleInfoWithRetries(options) {
-    let iam2 = new AWS.IAM(options);
-    let params = {
-        RoleName: targetRole
+    const options = {
+        accessKeyId: res.Credentials.AccessKeyId,
+        secretAccessKey: res.Credentials.SecretAccessKey,
+        sessionToken: res.Credentials.SessionToken,
     };
+
+    console.log("Credentials:", JSON.stringify(options));
+
+    //Use new credentials to read new IAM role, retries with exponential backoff and jitter as there is lag for role tags to apply
     try {
-        let data = await iam2.getRole(params).promise();
-        console.log("IAM role info: ", data);           // successful response
+        let iam = new AWS.IAM(options);
+        const data = await retry(async (context) => {
+            return iam.getRole({
+                RoleName: targetRole
+            }).promise();
+        },
+        {
+            delay: 200,
+            factor: 2,
+            maxAttempts: 10,
+            jitter: true, 
+            maxDelay: 10000
+        });
+        console.log("IAM role info: ", data);
         console.log("Total time taken in millisecond: ", (new Date()).getTime() - startTime);
     } catch (err) {
-        if(retriedNumber < retries) {
-            console.log("Fails to read, trying again ...");
-            setTimeout(function () {
-                fetchRoleInfoWithRetries(options);
-            }, 3000);
-            retriedNumber++;
-        } else {
-            console.log("Exceeding number of retries: ", retries);
-        }
+        console.log("Exceeding number of retries.");
     }
-}
+
+};
 
 fetchRoleInfo();
