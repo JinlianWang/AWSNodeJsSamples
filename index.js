@@ -8,11 +8,11 @@ const retry = require('@lifeomic/attempt').retry;
 
 let args = process.argv.slice(2)
 
-const targetRole = args[0]; //admin_role Test-Role
-console.log("Trying to read role: ", targetRole, "at: ", startTime);
+const targetName = args[0]; //admin_role Test-Role
+console.log("Trying to handle: ", targetName, "at: ", startTime);
+AWS.config.update({region:'us-east-1'});
 
-
-async function fetchRoleInfo() {
+async function handleTargetResource() {
 
     //Tag role with key as "resourceName" and specific role name as its value
     let res = await iam.tagRole({
@@ -20,7 +20,7 @@ async function fetchRoleInfo() {
         Tags: [
             {
                 Key: "resourceName",
-                Value: targetRole
+                Value: targetName
             }
         ]
     }).promise();
@@ -43,25 +43,25 @@ async function fetchRoleInfo() {
 
     //Use new credentials to read new IAM role, retries with exponential backoff and jitter as there is lag for role tags to apply
     try {
-        let iam = new AWS.IAM(options);
+        let sqs = new AWS.SQS(options);
         const data = await retry(async (context) => {
-            return iam.getRole({
-                RoleName: targetRole
+            return sqs.createQueue({
+                    QueueName: targetName
             }).promise();
         },
         {
             delay: 200,
             factor: 2,
-            maxAttempts: 10,
+            maxAttempts: 2,
             jitter: true, 
             maxDelay: 10000
         });
-        console.log("IAM role info: ", data);
+        console.log("Response: ", data);
         console.log("Total time taken in millisecond: ", (new Date()).getTime() - startTime);
     } catch (err) {
-        console.log("Exceeding number of retries.");
+        console.log("Exceeding number of retries: ", err);
     }
 
 };
 
-fetchRoleInfo();
+handleTargetResource();
