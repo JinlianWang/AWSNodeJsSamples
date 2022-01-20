@@ -52,7 +52,7 @@ async function handleTargetResource() {
         {
             delay: 200,
             factor: 2,
-            maxAttempts: 2,
+            maxAttempts: 10,
             jitter: true, 
             maxDelay: 10000
         });
