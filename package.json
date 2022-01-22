@@ -1,0 +1,23 @@
+{
+  "name": "aws",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JinlianWang/AWSNodeJsSamples.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JinlianWang/AWSNodeJsSamples/issues"
+  },
+  "homepage": "https://github.com/JinlianWang/AWSNodeJsSamples#readme",
+  "dependencies": {
+    "@lifeomic/attempt": "^3.0.2",
+    "aws-sdk": "^2.1060.0"
+  }
+}

@@ -4,12 +4,11 @@ const sts = new AWS.STS();
 let iam = new AWS.IAM();
 AWS.config.update({region:'us-east-1'});
 
-const roleName = "read-admin-role"
-const roleArn = "arn:aws:iam::730508922179:role/" + roleName;
-
 const services = {};
 
-services.handleTargetResource = async function handleTargetResource(targetName, startTime) {
+services.handleTargetResource = async function handleTargetResource(targetName, roleName = "read-admin-role", startTime) {
+
+    const roleArn = "arn:aws:iam::730508922179:role/" + roleName;
 
     //Tag role with key as "resourceName" and specific target resource name as its value
     let res = await iam.tagRole({
