@@ -21,7 +21,7 @@ async function createOrUpdate(secretPathName, username, password) {
         };
         res = await secretsmanager.putSecretValue(params).promise();
         console.log("Secret updated: ", res);
-        return res.ARN;
+        return res;
     } catch (err) { //Secrets not existing yet, create one
         params = {
             ClientRequestToken: uuid.v4(),
@@ -31,9 +31,23 @@ async function createOrUpdate(secretPathName, username, password) {
         };
         let res = await secretsmanager.createSecret(params).promise();
         console.log("Result of creating a new secret: ", res);
-        return res.ARN;
+        return res;
     }
 
 }
 
+async function getSecretInfo(secretPathName) {
+    let params = {
+        SecretId: secretPathName
+    };
+
+    try {
+        let res = await secretsmanager.describeSecret(params).promise();
+        return res;
+    } catch (err) { 
+        return "Something is wrong: " + err;
+    }
+}
+
+module.exports.getSecretInfo = getSecretInfo;
 module.exports.createOrUpdate = createOrUpdate;
