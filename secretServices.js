@@ -4,7 +4,7 @@ AWS.config.update({region:'us-east-1'});
 
 let secretsmanager = new AWS.SecretsManager();
 
-async function createOrUpdate(secretPathName, username, password) {
+async function createOrUpdateSecret(secretPathName, username, password) {
     let params = {
         SecretId: secretPathName
     };
@@ -50,4 +50,4 @@ async function getSecretInfo(secretPathName) {
 }
 
 module.exports.getSecretInfo = getSecretInfo;
-module.exports.createOrUpdate = createOrUpdate;
+module.exports.createOrUpdateSecret = createOrUpdateSecret;
