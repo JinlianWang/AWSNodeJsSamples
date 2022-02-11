@@ -2,15 +2,16 @@ const { SecretsOpsController } = require('./SecretsOpsController');
 
 
 exports.handler = async (event) => {
-    const serviceRole = "Secrets-Provisioning-Role";
+    const serviceRole = process.env.SECRETS_SERVICE_ROLE; 
+    const tableName = process.env.DYNAMODB_TABLE_NAME; 
 
     const secretsOpsController = new SecretsOpsController()
-        .setAccountId("730508922179")
+        .setAccountId(event.accountId)
         .setRoleName(serviceRole)
         .setSecretName(event.secretName)
         .setUserName(event.userName)
         .setPassword(event.password)
-        .setTableName("SecretsInfo");
+        .setTableName(tableName);
 
     let res = await secretsOpsController.createOrUpdateSecret();
     res = await secretsOpsController.saveToDynamoDB(res);
@@ -25,9 +26,10 @@ exports.handler = async (event) => {
 
 /*
 const event = {
+  "accountId": "730508922179", 
   "secretName": "/rds/admin3",
-  "userName": "userName4",
-  "password": "userPassword4"
+  "userName": "userName7",
+  "password": "userPassword7"
 }; 
 
 exports.handler(event).then(res=>{
@@ -35,5 +37,9 @@ exports.handler(event).then(res=>{
 });
 */
 
-//zip -r function.zip . 
-//aws lambda update-function-code --function-name SecretsProvisioner --zip-file fileb://function.zip
+/*
+export SECRETS_SERVICE_ROLE=Secrets-Provisioning-Role
+export DYNAMODB_TABLE_NAME=SecretsInfo
+zip -r function.zip . 
+aws lambda update-function-code --function-name SecretsProvisioner --zip-file fileb://function.zip
+*/
