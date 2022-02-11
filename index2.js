@@ -11,7 +11,7 @@ if(secretName == null) {
 }
 
 if(serviceRole == null) {
-    serviceRole = "read-admin-role";
+    serviceRole = "Secrets-Provisioning-Role";
 }
 
 const startTime = (new Date()).getTime();
@@ -42,7 +42,7 @@ async function createOrUpdateSecret(secretName, accountId, serviceRole, startTim
         {
             delay: 200,
             factor: 2,
-            maxAttempts: 10,
+            maxAttempts: 16,
             jitter: true, 
             maxDelay: 10000, 
             handleError (err, context) {
@@ -55,7 +55,7 @@ async function createOrUpdateSecret(secretName, accountId, serviceRole, startTim
         return data;
     } catch (err) {
         console.log("Exceeding number of retries: ", err);
-        throw new Error("Error: ", err);
+        throw new Error("Error: " + err);
     }
     
 }

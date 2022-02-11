@@ -1,11 +1,60 @@
+const retry = require('@lifeomic/attempt').retry;
+const SecretsProvisioner = require("./SecretsProvisioner").SecretsProvisioner;
+const { CredentialsRetriever } = require("./CredentialsRetriever");
 
-const handleTargetResource = require("./services.js").handleTargetResource;
+async function createOrUpdateSecret(secretName, accountId, serviceRole, startTime) {
+    const credentialsRetriever = new CredentialsRetriever();
 
-let args = process.argv.slice(2)
-const targetName = args[0]; //Name of target to be CRUDed
-const serviceRole = args[1]; //Name of IAM role to be assumed
+    const credentials = await credentialsRetriever
+        .setAccountId(accountId)
+        .setRoleName(serviceRole)
+        .setResourceName(secretName)
+        .retrieveCredentials();
 
-const startTime = (new Date()).getTime();
-console.log("Trying to CRUD: ", targetName, "at: ", startTime);
+        console.log("Credential retrieved:", credentials);
 
-handleTargetResource(targetName, serviceRole, startTime);
+        
+    const secretsProvisioner = new SecretsProvisioner(credentials);
+
+    try {
+        const data = await retry(async (context) => {
+
+            return secretsProvisioner.createOrUpdateSecret(secretName, "testname21", "testpassword21");
+
+        },
+        {
+            delay: 200,
+            factor: 2,
+            maxAttempts: 16,
+            jitter: true, 
+            maxDelay: 10000, 
+            handleError (err, context) {
+                console.log("error: " + err);
+                console.log("Attempted times: " + (context.attemptNum+1));
+            }
+        });
+        console.log("Response: ", data);
+        console.log("Total time taken in millisecond: ", (new Date()).getTime() - startTime);
+        return data;
+    } catch (err) {
+        console.log("Exceeding number of retries: ", err);
+        throw new Error("Error: " + err);
+    }
+    
+}
+
+exports.handler = async (event) => {
+    const startTime = (new Date()).getTime();
+    const secretName = "/rds/admin";
+    const serviceRole = "Secrets-Provisioning-Role";
+
+    const res = await createOrUpdateSecret(secretName, "730508922179", serviceRole, startTime);
+
+    const response = {
+        statusCode: 200,
+        body: JSON.stringify(res)
+    };
+    return response;
+};
+
+//aws lambda update-function-code --function-name SecretsProvisioner --zip-file fileb://function.zip
