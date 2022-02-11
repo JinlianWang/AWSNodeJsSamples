@@ -1,5 +1,5 @@
 const http = require('http')
-const {getSecretInfo, createOrUpdate} = require("./secretServices");
+const {getSecretInfo, createOrUpdate} = require("./SecretsProvisioner");
 
 const port = process.env.PORT || 3000
 

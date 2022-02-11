@@ -1,4 +1,4 @@
-const { createOrUpdateSecret } = require("./secretServices");
+const { SecretsProvisioner } = require("./SecretsProvisioner");
 const { createSecretTable, createOrUpdateSecretRecord, getSecretRecord, deleteSecretRecord } = require("./dynomodbServices"); 
 
 
@@ -16,7 +16,8 @@ console.log("Trying to create a secret using username: ", username, " password: 
 
 createSecretTable().then((res)=> {
     console.log("Table created: ", res); 
-    createOrUpdateSecret(secretPathName, username, password).then((res)=>{
+    let secretsProvisioner = new SecretsProvisioner();
+    secretsProvisioner.createOrUpdateSecret(secretPathName, username, password).then((res)=>{
         console.log("Secret ARN returned: ", res);
         createOrUpdateSecretRecord({path: secretPathName, ARN: res.ARN}).then((res)=>{
             console.log("Secret saved: ", res);
