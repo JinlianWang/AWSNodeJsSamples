@@ -1,6 +1,7 @@
 const retry = require('@lifeomic/attempt').retry;
 const SecretsProvisioner = require("./SecretsProvisioner").SecretsProvisioner;
 const { CredentialsRetriever } = require("./CredentialsRetriever");
+const { DynamoDBUpdator } = require("./DynamoDBUpdator"); 
 
 async function createOrUpdateSecret(secretName, accountId, serviceRole, startTime) {
     const credentialsRetriever = new CredentialsRetriever();
@@ -48,7 +49,11 @@ exports.handler = async (event) => {
     const secretName = "/rds/admin";
     const serviceRole = "Secrets-Provisioning-Role";
 
-    const res = await createOrUpdateSecret(secretName, "730508922179", serviceRole, startTime);
+    let res = await createOrUpdateSecret(secretName, "730508922179", serviceRole, startTime);
+
+    const dynamoDBUpdator = new DynamoDBUpdator({tableName:"SecretsInfo"});
+
+    res = await dynamoDBUpdator.createOrUpdateSecretRecord({path: secretName, ARN: res.ARN});
 
     const response = {
         statusCode: 200,
