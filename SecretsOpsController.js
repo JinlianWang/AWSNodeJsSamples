@@ -18,6 +18,11 @@ class SecretsOpsController {
         return this;
     }
 
+    setResourceTaggingRole(roleName) {
+        this.#info.resourceTaggingRole = roleName;
+        return this;
+    }
+
     setSecretName(secretName) {
         this.#info.secretName = secretName;
         return this;
@@ -51,6 +56,7 @@ class SecretsOpsController {
             .setAccountId(accountId)
             .setRoleName(roleName)
             .setResourceName(secretName)
+            .setResourceTaggingRole(this.#info.resourceTaggingRole)
             .retrieveCredentials();
     
         console.log("Credential retrieved:", credentials);
