@@ -1,6 +1,5 @@
 const AWS = require('aws-sdk');
 const sts = new AWS.STS();
-let iam = new AWS.IAM();
 
 class CredentialsRetriever {
 
@@ -21,10 +20,23 @@ class CredentialsRetriever {
         return this;
     }
 
+    setResourceTaggingRole(roleName) {
+        this.#info.resourceTaggingRole = roleName;
+        return this;
+    }
+
     async retrieveCredentials() {
+        let res;
+        if(this.#info.resourceName != null) {
+            res = await this.#tagRole();
+        }
+    
+        res = await this.#assumeRole(this.#info.roleName);
+        return res; 
+    }
+
+    async #assumeRole(roleName) {
         const accountId = this.#info.accountId;
-        const roleName = this.#info.roleName;
-        const resourceName = this.#info.resourceName;
 
         if(roleName == null) {
             throw new Error("Role name not set!");
@@ -34,26 +46,9 @@ class CredentialsRetriever {
             throw new Error("Account Id not set!");
         }
 
-
         const roleArn = "arn:aws:iam::" + accountId + ":role/" + roleName;
-
-        let res; 
-
-        if(resourceName != null) {
-            res = await iam.tagRole({
-                RoleName: roleName,
-                Tags: [
-                    {
-                        Key: "resourceName",
-                        Value: resourceName
-                    }
-                ]
-            }).promise();
-        
-            console.log("Tagging response: ", res);
-        }
     
-        res = await sts.assumeRole({
+        const res = await sts.assumeRole({
             RoleArn: roleArn,
             RoleSessionName: "assumed-session"
         }).promise();
@@ -65,6 +60,22 @@ class CredentialsRetriever {
         };
     }
 
+    async #tagRole() {
+        const credentials = await this.#assumeRole(this.#info.resourceTaggingRole); 
+        let iam = new AWS.IAM(credentials);
+        res = await iam.tagRole({
+            RoleName: this.#info.roleName,
+            Tags: [
+                {
+                    Key: "resourceName",
+                    Value: this.#info.resourceName
+                }
+            ]
+        }).promise();
+        
+        console.log("Tagging response: ", res);
+        return res; 
+    }
 }
 
 module.exports.CredentialsRetriever = CredentialsRetriever;
