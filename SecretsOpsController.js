@@ -64,7 +64,7 @@ class SecretsOpsController {
 
             switch (data.ops) {
                 case "create":
-                    if (existingRecord != null) {
+                    if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) {
                         return utils.generateJsonResponse(200, {
                             result: "Secret already exists",
                             ARN: existingRecord.Item.ARN["S"]
@@ -77,22 +77,26 @@ class SecretsOpsController {
                             ARN: res.ARN
                         }, data);
                     }
+
                 case "update":
-                    if (existingRecord == null) {
+                    if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) {
+                        res = await this.#handleOperationWithRetries();
+                        await this.#dynamoDBUpdator.updateSecretRecord(res);
+                        return utils.generateJsonResponse(200, {
+                            result: "Secret updated",
+                            ARN: res.ARN
+                        }, data);
+                    } else {
                         return utils.generateResponse(400, `Secret of ${data.secretName} does not exist in account of ${data.accountId}.`);
                     }
-                    res = await this.#handleOperationWithRetries();
-                    await this.#dynamoDBUpdator.updateSecretRecord(res);
-                    return utils.generateJsonResponse(200, {
-                        result: "Secret updated",
-                        ARN: res.ARN
-                    }, data);
+   
                 case "delete":
                     res = await this.#handleOperationWithRetries();
                     await this.#dynamoDBUpdator.deleteSecretRecord(this.#info.secretName);
                     return utils.generateJsonResponse(200, {
                         result: "Secret deleted!"
                     }, data);
+                    
                 default:
                     return utils.generateJsonResponse(500, { result: "Internal server error: operation of " + data.ops + " is not supported" }, data);
             }

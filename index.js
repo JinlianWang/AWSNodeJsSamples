@@ -34,7 +34,7 @@ exports.handler = async (event) => {
 };
 
 /* 
-//Sandbox: 975156237701 Í
+//Sandbox: 975156237701 
 
 const data = {
     "ops": "create",

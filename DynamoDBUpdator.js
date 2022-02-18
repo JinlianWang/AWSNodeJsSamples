@@ -53,18 +53,24 @@ class DynamoDBUpdator {
 
     async updateSecretRecord(data) {
         var params = {
-            Item: {
+            Key: {
                 "Path": {
                     S: data.path
-                },
-                "ARN": {
-                    S: data.ARN
                 }
             },
-            ReturnConsumedCapacity: "TOTAL",
+            ExpressionAttributeNames: {
+                "#LUO": "LastUpdatedOn"
+            },
+            ExpressionAttributeValues: {
+                ":x": {
+                    N: String(new Date().getTime())
+                }
+            },
+            UpdateExpression: "SET #LUO = :x",
             TableName: this.#tableName
         };
-        return this.#dynamodb.putItem(params).promise();
+
+        return this.#dynamodb.updateItem(params).promise();
     }
 
     async createSecretRecord(data) {
@@ -75,9 +81,11 @@ class DynamoDBUpdator {
                 },
                 "ARN": {
                     S: data.ARN
+                },
+                "CreatedOn": {
+                    N: String(new Date().getTime())
                 }
             },
-            ReturnConsumedCapacity: "TOTAL",
             TableName: this.#tableName
         };
         return this.#dynamodb.putItem(params).promise();
@@ -96,16 +104,29 @@ class DynamoDBUpdator {
     }
 
     async deleteSecretRecord(path) {
-        var res = await getSecretRecord(path);
-        let data = res.Item;
-        console.log("data: ", data);
-        data.Active = { "BOOL": false };
         var params = {
-            Item: data,
-            ReturnConsumedCapacity: "TOTAL",
+            Key: {
+                "Path": {
+                    S: path
+                }
+            },
+            ExpressionAttributeNames: {
+                "#A": "Active",
+                "#DO": "DeletedOn"
+            },
+            ExpressionAttributeValues: {
+                ":x": {
+                    BOOL: false
+                },
+                ":y": {
+                    N: String(new Date().getTime())
+                }
+            },
+            UpdateExpression: "SET #A = :x, #DO = :y",
             TableName: this.#tableName
         };
-        return this.#dynamodb.putItem(params).promise();
+
+        return this.#dynamodb.updateItem(params).promise();
     }
 }
 
