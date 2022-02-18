@@ -44,6 +44,22 @@ class SecretsOpsController {
         return this;
     }
 
+    async handleSecretOperation(data) {
+        this.setAccountId(data.accountId)
+            .setSecretName(data.secretName)
+            .setUserName(data.userName)
+            .setPassword(data.password);
+
+        let res = await this.createOrUpdateSecret();
+        res = await this.saveToDynamoDB(res);
+
+        res.ops = data.ops;
+        res.accountId = data.accountId;
+        res.secretName = data.secretName;
+
+        
+        return res;
+    }
     async createOrUpdateSecret() {
 
         const secretName = this.#info.secretName;

@@ -1,4 +1,5 @@
 const { SecretsOpsController } = require('./SecretsOpsController');
+const utils = require('./Utils');
 
 
 exports.handler = async (event) => {
@@ -10,51 +11,32 @@ exports.handler = async (event) => {
     const path = event.path;
     let response;
 
-
    switch(httpMethod) {
        case "POST":
             if(event.body == null) {
-                response = {
-                    statusCode: 400,
-                    body: "No body is found for POST http method."
-                }
+                response = utils.generateResponse(400, "No body is found for POST http method."); //400 Bad Request
             }
 
             if(path != secretsProvisionerPath) {
-                response = {
-                    statusCode: 404,
-                    body: "Only path of " + secretsProvisionerPath + " is supported."
-                }
+                response  = utils.generateResponse(404, "Only path of " + secretsProvisionerPath + " is supported."); //404 Not Found
             }
 
-            if(response != null) {
-                return response;
-            }
+            let data = utils.validateBody(event.body);
 
-            let data = JSON.parse(event.body);
+            if(data.statusCode != null) return data; //Return http response back without further processing, as it contains invalid input in body. 
 
             const secretsOpsController = new SecretsOpsController()
-                .setAccountId(data.accountId)
                 .setRoleName(serviceRole)
-                .setSecretName(data.secretName)
                 .setResourceTaggingRole(resourceTaggingRole)
-                .setUserName(data.userName)
-                .setPassword(data.password)
                 .setTableName(tableName);
 
-            let res = await secretsOpsController.createOrUpdateSecret();
-            res = await secretsOpsController.saveToDynamoDB(res);
+            let res = await secretsOpsController.handleSecretOperation(data);
 
-            response = {
-                statusCode: 200,
-                body: JSON.stringify(res)
-            };
+            response = utils.generateResponse(200, JSON.stringify(res));
+
             break;
        default: 
-            response = {
-                statusCode: 405,
-                body: "Http Method of " + httpMethod + " is not supported."
-            }
+            response = utils.generateResponse(405, "Http Method of " + httpMethod + " is not supported."); //405 Method Not Allowed
    }
 
     return response;
@@ -64,6 +46,7 @@ exports.handler = async (event) => {
 //Sandbox: 975156237701 
 
 const data ={
+    "ops": "create",
     "accountId": "975156237701", 
     "secretName": "/rds/test",
     "userName": "userName8",
