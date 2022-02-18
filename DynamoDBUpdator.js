@@ -1,12 +1,12 @@
 const AWS = require('aws-sdk');
-AWS.config.update({region:'us-east-1'});
+AWS.config.update({ region: 'us-east-1' });
 
 class DynamoDBUpdator {
 
     #dynamodb;
     #tableName;
 
-    constructor(options){
+    constructor(options) {
         this.#dynamodb = new AWS.DynamoDB(options);
         this.#tableName = options.tableName != null ? options.tableName : "SecretsInfoProd";
     }
@@ -18,9 +18,9 @@ class DynamoDBUpdator {
 
         try {
             let res = await this.#dynamodb.describeTable(params).promise();
-            if(res.Table.TableStatus == 'CREATING' | res.Table.TableStatus == 'UPDATING') {
-                return await this.#dynamodb.waitFor('tableExists', params).promise(); 
-            } else if(res.Table.TableStatus == 'ACTIVE') {
+            if (res.Table.TableStatus == 'CREATING' | res.Table.TableStatus == 'UPDATING') {
+                return await this.#dynamodb.waitFor('tableExists', params).promise();
+            } else if (res.Table.TableStatus == 'ACTIVE') {
                 return res;
             } else {
                 throw new Error("Something is wrong with table status.");
@@ -29,20 +29,20 @@ class DynamoDBUpdator {
             params = {
                 AttributeDefinitions: [
                     {
-                        AttributeName: "Path", 
+                        AttributeName: "Path",
                         AttributeType: "S"
                     }
-                ], 
+                ],
                 KeySchema: [
                     {
-                        AttributeName: "Path", 
+                        AttributeName: "Path",
                         KeyType: "HASH"
                     }
-                ], 
+                ],
                 ProvisionedThroughput: {
-                    ReadCapacityUnits: 1, 
+                    ReadCapacityUnits: 1,
                     WriteCapacityUnits: 1
-                }, 
+                },
                 TableName: this.#tableName
             };
             let res = await this.#dynamodb.createTable(params).promise();
@@ -54,14 +54,14 @@ class DynamoDBUpdator {
     async updateSecretRecord(data) {
         var params = {
             Item: {
-            "Path": {
-            S: data.path
-            }, 
-            "ARN": {
-            S: data.ARN
-            }
-            }, 
-            ReturnConsumedCapacity: "TOTAL", 
+                "Path": {
+                    S: data.path
+                },
+                "ARN": {
+                    S: data.ARN
+                }
+            },
+            ReturnConsumedCapacity: "TOTAL",
             TableName: this.#tableName
         };
         return this.#dynamodb.putItem(params).promise();
@@ -70,14 +70,14 @@ class DynamoDBUpdator {
     async createSecretRecord(data) {
         var params = {
             Item: {
-            "Path": {
-            S: data.path
-            }, 
-            "ARN": {
-            S: data.ARN
-            }
-            }, 
-            ReturnConsumedCapacity: "TOTAL", 
+                "Path": {
+                    S: data.path
+                },
+                "ARN": {
+                    S: data.ARN
+                }
+            },
+            ReturnConsumedCapacity: "TOTAL",
             TableName: this.#tableName
         };
         return this.#dynamodb.putItem(params).promise();
@@ -86,10 +86,10 @@ class DynamoDBUpdator {
     async getSecretRecord(path) {
         var params = {
             Key: {
-            "Path": {
-            S: path
-            }
-            }, 
+                "Path": {
+                    S: path
+                }
+            },
             TableName: this.#tableName
         };
         return this.#dynamodb.getItem(params).promise();
@@ -99,10 +99,10 @@ class DynamoDBUpdator {
         var res = await getSecretRecord(path);
         let data = res.Item;
         console.log("data: ", data);
-        data.Active = {"BOOL": false};
+        data.Active = { "BOOL": false };
         var params = {
-            Item: data, 
-            ReturnConsumedCapacity: "TOTAL", 
+            Item: data,
+            ReturnConsumedCapacity: "TOTAL",
             TableName: this.#tableName
         };
         return this.#dynamodb.putItem(params).promise();

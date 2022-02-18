@@ -27,32 +27,32 @@ class CredentialsRetriever {
 
     async retrieveCredentials() {
         let res;
-        if(this.#info.resourceName != null) {
+        if (this.#info.resourceName != null) {
             res = await this.#tagRole();
         }
-    
+
         res = await this.#assumeRole(this.#info.roleName);
-        return res; 
+        return res;
     }
 
     async #assumeRole(roleName) {
         const accountId = this.#info.accountId;
 
-        if(roleName == null) {
+        if (roleName == null) {
             throw new Error("Role name not set!");
         }
 
-        if(accountId == null) {
+        if (accountId == null) {
             throw new Error("Account Id not set!");
         }
 
         const roleArn = "arn:aws:iam::" + accountId + ":role/" + roleName;
-    
+
         const res = await sts.assumeRole({
             RoleArn: roleArn,
             RoleSessionName: "assumed-session"
         }).promise();
-    
+
         return {
             accessKeyId: res.Credentials.AccessKeyId,
             secretAccessKey: res.Credentials.SecretAccessKey,
@@ -61,7 +61,7 @@ class CredentialsRetriever {
     }
 
     async #tagRole() {
-        const credentials = await this.#assumeRole(this.#info.resourceTaggingRole); 
+        const credentials = await this.#assumeRole(this.#info.resourceTaggingRole);
         let iam = new AWS.IAM(credentials);
         let res = await iam.tagRole({
             RoleName: this.#info.roleName,
@@ -72,9 +72,9 @@ class CredentialsRetriever {
                 }
             ]
         }).promise();
-        
+
         console.log("Tagging response: ", res);
-        return res; 
+        return res;
     }
 }
 

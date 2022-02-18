@@ -1,6 +1,6 @@
 const utils = {};
 
-utils.generateResponse = function(statusCode, body) {
+utils.generateResponse = function (statusCode, body) {
     return {
         statusCode: statusCode,
         headers: {
@@ -24,33 +24,33 @@ utils.generateJsonResponse = function(statusCode, res, data) {
     };
 }
 
-utils.validateBody = function(body) {
+utils.validateBody = function (body) {
 
     try {
         let data = JSON.parse(body);
         let statusCode, responseText;
 
-        if(data.ops != "create" && data.ops != "delete" && data.ops != "update") {
+        if (data.ops != "create" && data.ops != "delete" && data.ops != "update") {
             statusCode = 400;
             responseText = "Operation of " + data.ops + "is not supported for POST http method.";
         }
 
-        if(data.accountId == null || data.secretName == null) {
+        if (data.accountId == null || data.secretName == null) {
             statusCode = 400;
             responseText = "Either accountId or secretName is not passed in POST body.";
         }
 
-        if(data.ops == "create" || data.ops == "update") {
-            if(data.userName == null || data.password == null) {
+        if (data.ops == "create" || data.ops == "update") {
+            if (data.userName == null || data.password == null) {
                 statusCode = 400;
                 responseText = "Either userName or password is not passed in POST body for secret creation or update.";
             }
         }
-        if(statusCode != null) {
+        if (statusCode != null) {
             return exports.generateResponse(statusCode, responseText);
         }
         return null;
-    } catch(err) {
+    } catch (err) {
         return exports.generateResponse(500, "Cannot parse request body into JSON object. ");
     }
 }
