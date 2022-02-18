@@ -51,7 +51,23 @@ class DynamoDBUpdator {
     }
 
 
-    async createOrUpdateSecretRecord(data) {
+    async updateSecretRecord(data) {
+        var params = {
+            Item: {
+            "Path": {
+            S: data.path
+            }, 
+            "ARN": {
+            S: data.ARN
+            }
+            }, 
+            ReturnConsumedCapacity: "TOTAL", 
+            TableName: this.#tableName
+        };
+        return this.#dynamodb.putItem(params).promise();
+    }
+
+    async createSecretRecord(data) {
         var params = {
             Item: {
             "Path": {

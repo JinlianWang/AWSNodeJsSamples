@@ -7,39 +7,30 @@ exports.handler = async (event) => {
     const resourceTaggingRole = process.env.SECRETS_TAGGING_ROLE; 
     const tableName = process.env.DYNAMODB_TABLE_NAME; 
     const secretsProvisionerPath = process.env.SECRETS_PROVISIONER_PATH;
-    const httpMethod = event.httpMethod;
-    const path = event.path;
-    let response;
 
-   switch(httpMethod) {
-       case "POST":
-            if(event.body == null) {
-                response = utils.generateResponse(400, "No body is found for POST http method."); //400 Bad Request
-            }
+    if(event.httpMethod == "POST") {
+        let response;
+        if(event.body == null) {
+            response = utils.generateResponse(400, "No body is found for POST http method."); //400 Bad Request
+        }
 
-            if(path != secretsProvisionerPath) {
-                response  = utils.generateResponse(404, "Only path of " + secretsProvisionerPath + " is supported."); //404 Not Found
-            }
+        if(event.path != secretsProvisionerPath) {
+            response  = utils.generateResponse(404, "Only path of " + secretsProvisionerPath + " is supported."); //404 Not Found
+        }
 
-            let data = utils.validateBody(event.body);
+        response = utils.validateBody(event.body);
 
-            if(data.statusCode != null) return data; //Return http response back without further processing, as it contains invalid input in body. 
+        if(response != null) return response; //Return http response back without further processing, as it does not pass body validation. 
 
-            const secretsOpsController = new SecretsOpsController()
-                .setRoleName(serviceRole)
-                .setResourceTaggingRole(resourceTaggingRole)
-                .setTableName(tableName);
+        const secretsOpsController = new SecretsOpsController()
+            .setRoleName(serviceRole)
+            .setResourceTaggingRole(resourceTaggingRole)
+            .setTableName(tableName);
 
-            let res = await secretsOpsController.handleSecretOperation(data);
-
-            response = utils.generateResponse(200, JSON.stringify(res));
-
-            break;
-       default: 
-            response = utils.generateResponse(405, "Http Method of " + httpMethod + " is not supported."); //405 Method Not Allowed
+        return await secretsOpsController.handleSecretOperation(JSON.parse(event.body));
+    } else {
+        return utils.generateResponse(405, "Http Method of " + httpMethod + " is not supported."); //405 Method Not Allowed
    }
-
-    return response;
 };
 
 /* 

@@ -27,7 +27,7 @@ class SecretsProvisioner {
             };
             res = await this.#secretsmanager.putSecretValue(params).promise();
             console.log("Secret updated: ", res);
-            return res;
+            return {path: secretPathName, ARN: res.ARN};
         } catch (err) { //Secrets not existing yet, create one
             params = {
                 ClientRequestToken: uuid.v4(),
@@ -37,9 +37,32 @@ class SecretsProvisioner {
             };
             let res = await this.#secretsmanager.createSecret(params).promise();
             console.log("Result of creating a new secret: ", res);
-            return res;
+            return {path: secretPathName, ARN: res.ARN};
         }
     
+    }
+
+    async deleteSecret(secretPathName) {
+        let params = {
+            SecretId: secretPathName
+        };
+    
+        try { //Try to see if secret already exists with the same name
+            let res = await this.#secretsmanager.describeSecret(params).promise();
+            console.log("Secret already exists with arn: ", res.ARN);
+    
+            //secrets already exists, update its value
+            params = {
+                ClientRequestToken: uuid.v4(),
+                SecretId: secretPathName
+            };
+
+            res = await this.#secretsmanager.deleteSecret(params).promise();
+            console.log("Secret updated: ", res);
+            return res;
+        } catch (err) { //Secrets not existing yet, create one
+
+        }
     }
     
     async getSecretInfo(secretPathName) {
@@ -51,7 +74,7 @@ class SecretsProvisioner {
             let res = await this.#secretsmanager.describeSecret(params).promise();
             return res;
         } catch (err) { 
-            return "Something is wrong: " + err;
+            return null;
         }
     } 
     

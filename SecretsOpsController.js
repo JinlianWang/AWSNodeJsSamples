@@ -2,6 +2,7 @@ const retry = require('@lifeomic/attempt').retry;
 const SecretsProvisioner = require("./SecretsProvisioner").SecretsProvisioner;
 const { CredentialsRetriever } = require("./CredentialsRetriever");
 const { DynamoDBUpdator } = require("./DynamoDBUpdator"); 
+const utils = require('./Utils');
 
 
 class SecretsOpsController {
@@ -10,6 +11,11 @@ class SecretsOpsController {
 
     setAccountId(accountId) {
         this.#info.accountId = accountId;
+        return this;
+    }
+
+    setSecretOps(ops) {
+        this.#info.ops = ops;
         return this;
     }
 
@@ -46,19 +52,53 @@ class SecretsOpsController {
 
     async handleSecretOperation(data) {
         this.setAccountId(data.accountId)
+            .setSecretOps(data.ops)
             .setSecretName(data.secretName)
             .setUserName(data.userName)
             .setPassword(data.password);
 
-        let res = await this.#handleOperationWithRetries();
-        res = await this.saveToDynamoDB(res);
+        try {
 
-        res.ops = data.ops;
-        res.accountId = data.accountId;
-        res.secretName = data.secretName;
+            let existingRecord = await this.#dynamoDBUpdator.getSecretRecord(data.secretName);
+            let res; 
 
-        
-        return res;
+            switch(data.ops){
+                case "create":
+                    if(existingRecord != null) {
+                        return utils.generateJsonResponse(200, {
+                            result: "Secret already exists",
+                            ARN: existingRecord.Item.ARN["S"]
+                        }, data);
+                    } else {
+                        let res = await this.#handleOperationWithRetries();
+                        await this.#dynamoDBUpdator.createSecretRecord(res);
+                        return  utils.generateJsonResponse(201, {
+                            result: "Secret created",
+                            ARN: res.ARN
+                        }, data);
+                    }
+                case "update":
+                    if(existingRecord == null) {
+                        return utils.generateResponse(400, `Secret of ${data.secretName} does not exist in account of ${data.accountId}.`);
+                    }
+                    res = await this.#handleOperationWithRetries();
+                    await this.#dynamoDBUpdator.updateSecretRecord(res);
+                    return  utils.generateJsonResponse(200, {
+                        result: "Secret updated",
+                        ARN: res.ARN
+                    }, data);
+                case "delete":
+                    res = await this.#handleOperationWithRetries();
+                    await this.#dynamoDBUpdator.deleteSecretRecord(this.#info.secretName);
+                    return  utils.generateJsonResponse(200, {
+                        result: "Secret deleted!"
+                    }, data);
+                default: 
+                    return utils.generateJsonResponse(500, {result: "Internal server error: operation of " + data.ops + " is not supported"}, data);
+            }
+        } catch (err) {
+            return utils.generateJsonResponse(500, {result: "Internal server error: " + err}, data);
+        }
     }
 
     async #handleOperationWithRetries() {
@@ -69,9 +109,14 @@ class SecretsOpsController {
             const startTime = (new Date()).getTime();
 
             const data = await retry(async (context) => {
-    
-                return secretsProvisioner.createOrUpdateSecret(this.#info.secretName, this.#info.userName, this.#info.password);
-    
+                const ops = this.#info.ops;
+                if(ops == "delete") {
+                    return secretsProvisioner.deleteSecret(this.#info.secretName);
+                } else if (ops == "create") {
+                    return secretsProvisioner.createSecret(this.#info.secretName, this.#info.userName, this.#info.password);
+                } else {
+                    return secretsProvisioner.createOrUpdateSecret(this.#info.secretName, this.#info.userName, this.#info.password);
+                }
             },
             {
                 delay: 200,
@@ -91,14 +136,6 @@ class SecretsOpsController {
             console.log("Exceeding number of retries: ", err);
             throw new Error("Error: " + err);
         }
-    }
-
-    async saveToDynamoDB(data) {
-        return this.#dynamoDBUpdator.createOrUpdateSecretRecord(
-            {
-                path: this.#info.secretName, 
-                ARN: data.ARN
-            });
     }
 
     async #getSecretsProvisioner() {
