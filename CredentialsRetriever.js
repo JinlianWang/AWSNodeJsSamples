@@ -62,7 +62,7 @@ class CredentialsRetriever {
 
     async #tagRole() {
         const credentials = await this.#assumeRole(this.#info.resourceTaggingRole);
-        const parts = this.#info.roleName;
+        const parts = this.#info.roleName.split("/");
         const roleName = parts[parts.length-1];
         let iam = new AWS.IAM(credentials);
         let res = await iam.tagRole({
