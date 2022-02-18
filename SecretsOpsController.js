@@ -50,7 +50,7 @@ class SecretsOpsController {
             .setUserName(data.userName)
             .setPassword(data.password);
 
-        let res = await this.createOrUpdateSecret();
+        let res = await this.#handleOperationWithRetries();
         res = await this.saveToDynamoDB(res);
 
         res.ops = data.ops;
@@ -60,32 +60,17 @@ class SecretsOpsController {
         
         return res;
     }
-    async createOrUpdateSecret() {
 
-        const secretName = this.#info.secretName;
-        const accountId = this.#info.accountId;
-        const roleName = this.#info.roleName;
-
-        const credentialsRetriever = new CredentialsRetriever();
+    async #handleOperationWithRetries() {
     
-        const credentials = await credentialsRetriever
-            .setAccountId(accountId)
-            .setRoleName(roleName)
-            .setResourceName(secretName)
-            .setResourceTaggingRole(this.#info.resourceTaggingRole)
-            .retrieveCredentials();
-    
-        console.log("Credential retrieved:", credentials);
-    
-            
-        const secretsProvisioner = new SecretsProvisioner(credentials);
+        const secretsProvisioner = await this.#getSecretsProvisioner();
     
         try {
             const startTime = (new Date()).getTime();
 
             const data = await retry(async (context) => {
     
-                return secretsProvisioner.createOrUpdateSecret(secretName, this.#info.userName, this.#info.password);
+                return secretsProvisioner.createOrUpdateSecret(this.#info.secretName, this.#info.userName, this.#info.password);
     
             },
             {
@@ -114,6 +99,22 @@ class SecretsOpsController {
                 path: this.#info.secretName, 
                 ARN: data.ARN
             });
+    }
+
+    async #getSecretsProvisioner() {
+        const credentialsRetriever = new CredentialsRetriever();
+    
+        const credentials = await credentialsRetriever
+            .setAccountId(this.#info.accountId)
+            .setRoleName(this.#info.roleName)
+            .setResourceName(this.#info.secretName)
+            .setResourceTaggingRole(this.#info.resourceTaggingRole)
+            .retrieveCredentials();
+    
+        console.log("Credential retrieved with token: ", credentials.sessionToken);
+    
+            
+        return new SecretsProvisioner(credentials);
     }
 }
 
