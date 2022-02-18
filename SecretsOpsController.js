@@ -64,7 +64,7 @@ class SecretsOpsController {
 
             switch (data.ops) {
                 case "create":
-                    if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) {
+                    if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) { //TO-DO: handle Acitve == false
                         return utils.generateJsonResponse(200, {
                             result: "Secret already exists",
                             ARN: existingRecord.Item.ARN["S"]
@@ -79,7 +79,7 @@ class SecretsOpsController {
                     }
 
                 case "update":
-                    if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) {
+                    if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) { //TO-DO: handle Acitve == false
                         res = await this.#handleOperationWithRetries();
                         await this.#dynamoDBUpdator.updateSecretRecord(res);
                         return utils.generateJsonResponse(200, {
@@ -89,14 +89,18 @@ class SecretsOpsController {
                     } else {
                         return utils.generateResponse(400, `Secret of ${data.secretName} does not exist in account of ${data.accountId}.`);
                     }
-   
+
                 case "delete":
-                    res = await this.#handleOperationWithRetries();
-                    await this.#dynamoDBUpdator.deleteSecretRecord(this.#info.secretName);
-                    return utils.generateJsonResponse(200, {
-                        result: "Secret deleted!"
-                    }, data);
-                    
+                    if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) { //TO-DO: handle Acitve == false
+                        res = await this.#handleOperationWithRetries();
+                        await this.#dynamoDBUpdator.deleteSecretRecord(this.#info.secretName);
+                        return utils.generateJsonResponse(200, {
+                            result: "Secret deleted!"
+                        }, data);
+                    } else {
+                        return utils.generateResponse(400, `Secret of ${data.secretName} does not exist in account of ${data.accountId}.`);
+                    }
+
                 default:
                     return utils.generateJsonResponse(500, { result: "Internal server error: operation of " + data.ops + " is not supported" }, data);
             }
@@ -119,7 +123,7 @@ class SecretsOpsController {
                 } else if (ops == "create") {
                     return secretsProvisioner.createSecret(this.#info.secretName, this.#info.userName, this.#info.password);
                 } else {
-                    return secretsProvisioner.createOrUpdateSecret(this.#info.secretName, this.#info.userName, this.#info.password);
+                    return secretsProvisioner.updateSecretValue(this.#info.secretName, this.#info.userName, this.#info.password);
                 }
             },
                 {

@@ -22,12 +22,17 @@ exports.handler = async (event) => {
 
         if (response != null) return response; //Return http response back without further processing, as it does not pass body validation. 
 
-        const secretsOpsController = new SecretsOpsController()
-            .setRoleName(serviceRole)
-            .setResourceTaggingRole(resourceTaggingRole)
-            .setTableName(tableName);
+        const data = JSON.parse(event.body);
+        try {
+            const secretsOpsController = new SecretsOpsController()
+                .setRoleName(serviceRole)
+                .setResourceTaggingRole(resourceTaggingRole)
+                .setTableName(tableName);
 
-        return await secretsOpsController.handleSecretOperation(JSON.parse(event.body));
+            return await secretsOpsController.handleSecretOperation(data);
+        } catch (err) {
+            return utils.generateJsonResponse(500, { result: "Internal server error: " + err }, data);
+        }
     } else {
         return utils.generateResponse(405, "Http Method of " + httpMethod + " is not supported."); //405 Method Not Allowed
     }

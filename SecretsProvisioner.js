@@ -42,26 +42,49 @@ class SecretsProvisioner {
 
     }
 
-    async deleteSecret(secretPathName) {
-        let params = {
-            SecretId: secretPathName
-        };
-
-        try { //Try to see if secret already exists with the same name
-            let res = await this.#secretsmanager.describeSecret(params).promise();
-            console.log("Secret already exists with arn: ", res.ARN);
-
-            //secrets already exists, update its value
-            params = {
+    async createSecret(secretPathName, username, password) {
+        try {
+            let params = {
                 ClientRequestToken: uuid.v4(),
+                Description: "Test database secret created through Secrets Provisioner.",
+                Name: secretPathName,
+                SecretString: `{\"username\":\"${username}\",\"password\":\"${password}\"}`
+            };
+            let res = await this.#secretsmanager.createSecret(params).promise();
+            console.log("Result of creating a new secret: ", res);
+            return { path: secretPathName, ARN: res.ARN };
+        } catch (err) {
+            throw new Error("Secret creation failed: " + err);
+        }
+    }
+
+    async updateSecretValue(secretPathName, username, password) {
+        try {
+            let params = {
+                ClientRequestToken: uuid.v4(),
+                SecretId: secretPathName,
+                SecretString: `{\"username\":\"${username}\",\"password\":\"${password}\"}`
+            };
+            let res = await this.#secretsmanager.putSecretValue(params).promise();
+            console.log("Secret updated: ", res);
+            return { path: secretPathName, ARN: res.ARN };
+        } catch (err) {
+            throw new Error("Secret value update failed: " + err);
+        }
+    }
+
+
+    async deleteSecret(secretPathName) {
+        try {
+            let params = {
                 SecretId: secretPathName
             };
 
-            res = await this.#secretsmanager.deleteSecret(params).promise();
-            console.log("Secret updated: ", res);
-            return res;
-        } catch (err) { //Secrets not existing yet, create one
-
+            let res = await this.#secretsmanager.deleteSecret(params).promise();
+            console.log("Secret deleted: ", res);
+            return { path: secretPathName, ARN: res.ARN };
+        } catch (err) {
+            throw new Error("Secrets deletion failed: " + err);
         }
     }
 
@@ -71,8 +94,7 @@ class SecretsProvisioner {
         };
 
         try {
-            let res = await this.#secretsmanager.describeSecret(params).promise();
-            return res;
+            return await this.#secretsmanager.describeSecret(params).promise();
         } catch (err) {
             return null;
         }
