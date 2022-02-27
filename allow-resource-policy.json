@@ -1,0 +1,11 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "allow",
+        "Action": "secretsmanager:GetSecretValue",
+        "Principal": {"AWS": "arn:aws:sts::730508922179:assumed-role/admin_role/sunnyrolename"},
+        "Resource": "*"
+      }
+    ]
+  }
