@@ -24,43 +24,37 @@
   }
 
 {
-    "Version": "2012-10-17",
-    "Statement": [    {
-      "Effect": "deny",
-      "Action": "secretsmanager:GetSecretValue",
-      "Principal": {"AWS": "*"},
-      "Resource": "*"
-    }, 
-      {
-        "Effect": "allow",
-        "Action": "secretsmanager:GetSecretValue",
-        "Principal": {"Service": "rds.amazonaws.com"},
-        "Resource": "*"
-      }
-    ]
+  "Version": "2012-10-17",
+  "Statement": [    {
+    "Effect": "deny",
+    "Action": "secretsmanager:GetSecretValue",
+    "NotPrincipal": {"Service": "rds.amazonaws.com"},
+    "Resource": "*"
   }
+  ]
+}
 
 
 
-  aws secretsmanager put-resource-policy --secret-id /rds/user2 --resource-policy file://deny.json
+aws secretsmanager put-resource-policy --secret-id /rds/user2 --resource-policy file://deny.json
 
 
-  aws secretsmanager put-resource-policy --secret-id /rds/user --resource-policy file://allow.json
-
-
-
-  aws secretsmanager put-resource-policy --secret-id /rds/userb --resource-policy file://deny.json
-  aws secretsmanager put-resource-policy --secret-id /rds/userb --resource-policy file://allow.json
-    aws secretsmanager put-resource-policy --secret-id /rds/userb --resource-policy file://rds-proxy-permission.json
-    aws secretsmanager put-resource-policy --secret-id /rds/userg --resource-policy file://rds-proxy-permission.json
-
-    aws secretsmanager get-secret-value \
-    --secret-id /rds/userb
+aws secretsmanager put-resource-policy --secret-id /rds/user --resource-policy file://allow.json
 
 
 
-    aws rds stop-db-instance \
-    --db-instance-identifier rds-proxy-demo
+aws secretsmanager put-resource-policy --secret-id /rds/userb --resource-policy file://deny.json
+aws secretsmanager put-resource-policy --secret-id /rds/userb --resource-policy file://allow.json
+aws secretsmanager put-resource-policy --secret-id /rds/userb --resource-policy file://rds-proxy-permission.json
+aws secretsmanager put-resource-policy --secret-id /rds/userg --resource-policy file://rds-proxy-permission.json
+
+aws secretsmanager get-secret-value \
+--secret-id /rds/userb
+
+
+
+aws rds stop-db-instance \
+--db-instance-identifier rds-proxy-demo
 
 
 aws rds create-db-proxy \
@@ -72,13 +66,14 @@ aws rds create-db-proxy \
 --vpc-security-group-ids sg-08a1e994b130d3feb \
 --require-tls
 
-aws rds register-db-proxy-targets --db-proxy-name sunny-proxy2 \
+aws rds register-db-proxy-targets --db-proxy-name sunny-proxy \
 --target-group-name default \
 --db-instance-identifiers rds-proxy-demo
 
-aws rds delete-db-proxy --db-proxy-name sunny-proxy2
+aws rds delete-db-proxy --db-proxy-name sunny-proxy
 
 
 aws rds stop-db-instance --db-instance-identifier rds-proxy-demo
 
-
+sunny-proxy.proxy-c0lziyx52frq.us-east-1.rds.amazonaws.com:5432/?Action=connect&DBUser=userb&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA6GC6XKWCZANTCEOX%2F20220227%2Fus-east-1%2Frds-db%2Faws4_request&X-Amz-Date=20220227T003130Z&X-Amz-Expires=900&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEHEaCXVzLWVhc3QtMSJHMEUCIQCd6GIqcuj2G5eT7nJr%2BjqbT%2BY66afOODzFlqPOwkNDpgIgatZCWaUYqTRsCpyFgoP4VEz9DC2Pj2i3WjEtBOC%2Bc3cqyQIIyv%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARAAGgw5NzUxNTYyMzc3MDEiDGWEpM878jvmXzZU0CqdAvmP%2FJLhn4vjPtdZsE9%2FWeEtY9zSkh1eJb%2F4oa%2BPIvC%2BbhVZP8u1OryxwkfoICblGKtRr3vMQZaWO234bTaG%2BNomEwh8oSW%2Bq1q1wVclD1mTYznor0sNmyO1W9nNtI4s2cbgtztBdxSxwmrrobrNJJoX50F8OGmcmtA%2B%2FN%2Bz0MfriBG9HLb4z2EfNgwSPGs3t5tTP9EglybZm78CmRoiEWRMDWZVRH9SNTXRpEcZhSGeHYTGw4fEP94dK77I6T21nAmhXKfWlyLDjwnGrOWvmlM6CtE9We2eVU6vqWjPS1gtzWDvb7sM8CKIRMoahHXviAfuyKVEDJMLNamRVwZ4N%2BtF2x0%2Ff%2FE%2BcZMhdSsvcy56IgzG%2F9Z5IM1prI%2FinjDijOuQBjqaAQDf2QWLiS2jR9mFBTsE1KX4Gm6nytb%2BqEc%2FIcQc03sRVKrAQAtnfVwsz4eQRazqrb7tu7KT1nKML0erWLW87g8iG8loQagz2%2B%2FK5KOLI0E9tHQlxQK4GkbxEVc5toaOj5yce8BoabVTxei%2BfYAKocHH50O4OQVo5ewlXACs%2BOY3fCxPdQuyky26RTikl9Rk0Ja1ho9qrww1YAk%3D&X-Amz-Signature=13d8e6c331fc7dca05e0e8e090891f8590091f708807927696b8b32e3874297f&X-Amz-SignedHeaders=host
+2022-02-27T00:31:30.976Z	b3a9df4e-8005-4484-8b1f-9afe6616ca52	INFO	Creatin
