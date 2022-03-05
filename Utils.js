@@ -47,11 +47,11 @@ utils.validateBody = function (body) {
             }
         }
         if (statusCode != null) {
-            return exports.generateResponse(statusCode, responseText);
+            return utils.generateResponse(statusCode, responseText);
         }
         return null;
     } catch (err) {
-        return exports.generateResponse(500, "Cannot parse request body into JSON object. ");
+        return utils.generateResponse(500, "Cannot parse request body into JSON object. ");
     }
 }
 

@@ -34,7 +34,7 @@ exports.handler = async (event) => {
             return utils.generateJsonResponse(500, { result: "Internal server error: " + err }, data);
         }
     } else {
-        return utils.generateResponse(405, "Http Method of " + httpMethod + " is not supported."); //405 Method Not Allowed
+        return utils.generateResponse(405, "Http Method of " + event.httpMethod + " is not supported."); //405 Method Not Allowed
     }
 };
 
@@ -66,6 +66,6 @@ export SECRETS_TAGGING_ROLE=Secrets-Tagging-Role
 export DYNAMODB_TABLE_NAME=SecretsInfo
 export SECRETS_PROVISIONER_PATH=/secrets
 
-zip -r function.zip . 
+rm -rf function.zip & zip -r function.zip . -x ".git/*"
 aws lambda update-function-code --function-name SecretsProvisioner --zip-file fileb://function.zip
 */
