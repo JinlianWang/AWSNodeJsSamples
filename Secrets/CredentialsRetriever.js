@@ -15,7 +15,7 @@ class CredentialsRetriever {
             res = await this.#tagRole();
         }
 
-        res = await this.#assumeRole(this.#options.roleName);
+        res = await this.#assumeRole(this.#options.serviceRole);
         return res;
     }
 
@@ -46,7 +46,7 @@ class CredentialsRetriever {
 
     async #tagRole() {
         const credentials = await this.#assumeRole(this.#options.resourceTaggingRole);
-        const parts = this.#options.roleName.split("/");
+        const parts = this.#options.serviceRole.split("/");
         const roleName = parts[parts.length-1];
         let iam = new AWS.IAM(credentials);
         let res = await iam.tagRole({
@@ -59,7 +59,7 @@ class CredentialsRetriever {
             ]
         }).promise();
 
-        console.log(`Tagging ${this.#options.roleName} successfully with response: ${res}.`);
+        console.log(`Tagging ${this.#options.serviceRole} successfully with response: ${JSON.stringify(res)}.`);
         return res;
     }
 }

@@ -39,15 +39,15 @@ exports.handler = async (event) => {
     }
 };
 
-/* 
+
 //Sandbox: 975156237701 
 
 const data = {
-    "ops": "create",
+    "ops": "delete",
     "accountId": "975156237701",
-    "secretName": "/rds/test",
-    "userName": "userName8",
-    "password": "userPassword8"
+    "secretName": "/rds/user",
+    "username": "new3",
+    "password": "new3"
 };
 
 const event = {
@@ -59,9 +59,10 @@ const event = {
 exports.handler(event).then(res => {
     console.log("Response:", res);
 });
- */
+
 
 /*
+export AWS_PROFILE=admin
 export SECRETS_SERVICE_ROLE=Secrets-Provisioning-Role
 export SECRETS_TAGGING_ROLE=Secrets-Tagging-Role
 export DYNAMODB_TABLE_NAME=SecretsInfo

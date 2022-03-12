@@ -84,12 +84,12 @@ class SecretsOpsController {
                     return secretsProvisioner.deleteSecret(this.#options.secretName);
                 } else if (ops == "create") {
                     return secretsProvisioner.createSecret(this.#options.secretName, {
-                        userName: this.#options.userName,
+                        username: this.#options.username,
                         password: this.#options.password
                     });
                 } else {
                     return secretsProvisioner.updateSecretValue(this.#options.secretName, {
-                        userName: this.#options.userName,
+                        username: this.#options.username,
                         password: this.#options.password
                     });
                 }
@@ -118,7 +118,7 @@ class SecretsOpsController {
 
         const credentialsRetriever = new CredentialsRetriever({
             accountId: this.#options.accountId,
-            roleName: this.#options.roleName,
+            serviceRole: this.#options.serviceRole,
             resourceName: this.#options.secretName,
             resourceTaggingRole: this.#options.resourceTaggingRole
         });

@@ -41,9 +41,9 @@ utils.validateBody = function (body) {
         }
 
         if (data.ops == "create" || data.ops == "update") {
-            if (data.userName == null || data.password == null) {
+            if (data.username == null || data.password == null) {
                 statusCode = 400;
-                responseText = "Either userName or password is not passed in POST body for secret creation or update.";
+                responseText = "Either username or password is not passed in POST body for secret creation or update.";
             }
         }
         if (statusCode != null) {

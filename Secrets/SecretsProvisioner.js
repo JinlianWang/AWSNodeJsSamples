@@ -4,11 +4,9 @@ AWS.config.update({ region: 'us-east-1' });
 
 class SecretsProvisioner {
 
-    #options;
     #secretsmanager;
 
     constructor(options) {
-        this.#options = Object.assign({}, options);
         this.#secretsmanager = new AWS.SecretsManager(options);
     }
 
