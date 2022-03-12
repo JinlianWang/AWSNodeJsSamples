@@ -25,7 +25,7 @@ class SecretsOpsController {
 
             switch (data.ops) {
                 case "create":
-                    if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) { //TO-DO: handle Acitve == false
+                    if (this.isRecordActive(existingRecord)) { 
                         return utils.generateJsonResponse(200, {
                             result: "Secret already exists",
                             ARN: existingRecord.Item.ARN["S"]
@@ -40,7 +40,7 @@ class SecretsOpsController {
                     }
 
                 case "update":
-                    if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) { //TO-DO: handle Acitve == false
+                    if (this.isRecordActive(existingRecord)) { 
                         res = await this.#handleOperationWithRetries();
                         await this.#dynamoDBUpdator.updateSecretRecord(res);
                         return utils.generateJsonResponse(200, {
@@ -52,7 +52,7 @@ class SecretsOpsController {
                     }
 
                 case "delete":
-                    if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) { //TO-DO: handle Acitve == false
+                    if (this.isRecordActive(existingRecord)) {
                         res = await this.#handleOperationWithRetries();
                         await this.#dynamoDBUpdator.deleteSecretRecord(this.#options.secretName);
                         return utils.generateJsonResponse(200, {
@@ -128,6 +128,10 @@ class SecretsOpsController {
         console.log("Credential retrieved with token: ", credentials.sessionToken);
 
         return credentials;
+    }
+
+    isRecordActive(existingRecord) {
+        return existingRecord && existingRecord.Item && existingRecord.Item.ARN && existingRecord.Item.Active.BOOL;
     }
 }
 

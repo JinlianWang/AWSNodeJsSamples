@@ -82,6 +82,9 @@ class DynamoDBUpdator {
                 "ARN": {
                     S: data.ARN
                 },
+                "Active": {
+                    BOOL: true
+                },
                 "CreatedOn": {
                     N: String(new Date().getTime())
                 }
