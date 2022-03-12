@@ -42,12 +42,12 @@ exports.handler = async (event) => {
 
 //Sandbox: 975156237701 
 
-const data = {
-    "ops": "delete",
+/* const data = {
+    "ops": "update",
     "accountId": "975156237701",
-    "secretName": "/rds/user",
-    "username": "new3",
-    "password": "new3"
+    "secretName": "/rds/userg",
+    "username": "new4",
+    "password": "new4"
 };
 
 const event = {
@@ -59,7 +59,7 @@ const event = {
 exports.handler(event).then(res => {
     console.log("Response:", res);
 });
-
+ */
 
 /*
 export AWS_PROFILE=admin
@@ -70,4 +70,10 @@ export SECRETS_PROVISIONER_PATH=/secrets
 
 rm -rf function.zip & zip -r function.zip . -x ".git/*"
 aws lambda update-function-code --function-name SecretsProvisioner --zip-file fileb://function.zip
+
+{
+  "path": "/secrets",
+  "httpMethod": "POST",
+  "body": "{\"ops\":\"update\", \"accountId\":\"975156237701\",\"secretName\":\"/rds/userg\",\"username\":\"username-g\",\"password\":\"password-g\"}"
+}
 */
