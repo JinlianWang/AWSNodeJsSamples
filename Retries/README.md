@@ -1,0 +1,2 @@
+# AWSNodeJsSamples
+This repo demos how to tag an IAM role with a resource name, and use the resulted role to modify an existing resource or create a new resource with the same name. Normally a party/microservice does the flagging before passing it to another party/microservice to be assumed. Retries with exponential back off and jitter is used to solve the lagging issue coming with AWS IAM changes. 
