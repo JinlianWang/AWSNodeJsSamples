@@ -6,56 +6,17 @@ const utils = require('./Utils');
 
 
 class SecretsOpsController {
-    #info = {};
+    #options = {};
     #dynamoDBUpdator;
 
-    setAccountId(accountId) {
-        this.#info.accountId = accountId;
-        return this;
-    }
-
-    setSecretOps(ops) {
-        this.#info.ops = ops;
-        return this;
-    }
-
-    setRoleName(roleName) {
-        this.#info.roleName = roleName;
-        return this;
-    }
-
-    setResourceTaggingRole(roleName) {
-        this.#info.resourceTaggingRole = roleName;
-        return this;
-    }
-
-    setSecretName(secretName) {
-        this.#info.secretName = secretName;
-        return this;
-    }
-
-    setUserName(userName) {
-        this.#info.userName = userName;
-        return this;
-    }
-
-    setPassword(password) {
-        this.#info.password = password;
-        return this;
-    }
-
-    setTableName(tableName) {
-        this.#info.tableName = tableName;
-        this.#dynamoDBUpdator = new DynamoDBUpdator({ tableName: tableName });
-        return this;
+    constructor(options) {
+        this.#options = Object.assign({}, options);
     }
 
     async handleSecretOperation(data) {
-        this.setAccountId(data.accountId)
-            .setSecretOps(data.ops)
-            .setSecretName(data.secretName)
-            .setUserName(data.userName)
-            .setPassword(data.password);
+        this.#options = Object.assign(this.#options, data);
+
+        this.#dynamoDBUpdator = new DynamoDBUpdator({ tableName: this.#options.tableName });
 
         try {
 
@@ -93,7 +54,7 @@ class SecretsOpsController {
                 case "delete":
                     if (existingRecord && existingRecord.Item && existingRecord.Item.ARN) { //TO-DO: handle Acitve == false
                         res = await this.#handleOperationWithRetries();
-                        await this.#dynamoDBUpdator.deleteSecretRecord(this.#info.secretName);
+                        await this.#dynamoDBUpdator.deleteSecretRecord(this.#options.secretName);
                         return utils.generateJsonResponse(200, {
                             result: "Secret deleted!"
                         }, data);
@@ -111,19 +72,26 @@ class SecretsOpsController {
 
     async #handleOperationWithRetries() {
 
-        const secretsProvisioner = await this.#getSecretsProvisioner();
+        const credentials = await this.#retrieveCredentials();
+        const secretsProvisioner = new SecretsProvisioner(credentials);
 
         try {
             const startTime = (new Date()).getTime();
 
             const data = await retry(async (context) => {
-                const ops = this.#info.ops;
+                const ops = this.#options.ops;
                 if (ops == "delete") {
-                    return secretsProvisioner.deleteSecret(this.#info.secretName);
+                    return secretsProvisioner.deleteSecret(this.#options.secretName);
                 } else if (ops == "create") {
-                    return secretsProvisioner.createSecret(this.#info.secretName, this.#info.userName, this.#info.password);
+                    return secretsProvisioner.createSecret(this.#options.secretName, {
+                        userName: this.#options.userName,
+                        password: this.#options.password
+                    });
                 } else {
-                    return secretsProvisioner.updateSecretValue(this.#info.secretName, this.#info.userName, this.#info.password);
+                    return secretsProvisioner.updateSecretValue(this.#options.secretName, {
+                        userName: this.#options.userName,
+                        password: this.#options.password
+                    });
                 }
             },
                 {
@@ -146,20 +114,20 @@ class SecretsOpsController {
         }
     }
 
-    async #getSecretsProvisioner() {
-        const credentialsRetriever = new CredentialsRetriever();
+    async #retrieveCredentials() {
 
-        const credentials = await credentialsRetriever
-            .setAccountId(this.#info.accountId)
-            .setRoleName(this.#info.roleName)
-            .setResourceName(this.#info.secretName)
-            .setResourceTaggingRole(this.#info.resourceTaggingRole)
-            .retrieveCredentials();
+        const credentialsRetriever = new CredentialsRetriever({
+            accountId: this.#options.accountId,
+            roleName: this.#options.roleName,
+            resourceName: this.#options.secretName,
+            resourceTaggingRole: this.#options.resourceTaggingRole
+        });
+
+        const credentials = await credentialsRetriever.retrieveCredentials();
 
         console.log("Credential retrieved with token: ", credentials.sessionToken);
 
-
-        return new SecretsProvisioner(credentials);
+        return credentials;
     }
 }
 

@@ -24,10 +24,11 @@ exports.handler = async (event) => {
 
         const data = JSON.parse(event.body);
         try {
-            const secretsOpsController = new SecretsOpsController()
-                .setRoleName(serviceRole)
-                .setResourceTaggingRole(resourceTaggingRole)
-                .setTableName(tableName);
+            const secretsOpsController = new SecretsOpsController({
+                serviceRole: serviceRole,
+                resourceTaggingRole: resourceTaggingRole,
+                tableName: tableName
+            });
 
             return await secretsOpsController.handleSecretOperation(data);
         } catch (err) {

@@ -3,17 +3,17 @@ AWS.config.update({ region: 'us-east-1' });
 
 class DynamoDBUpdator {
 
+    #options; 
     #dynamodb;
-    #tableName;
 
     constructor(options) {
-        this.#dynamodb = new AWS.DynamoDB(options);
-        this.#tableName = options.tableName != null ? options.tableName : "SecretsInfoProd";
+        this.#options = Object.assign({}, options);
+        this.#dynamodb = new AWS.DynamoDB();
     }
 
     async createSecretTable() {
         let params = {
-            TableName: this.#tableName
+            TableName: this.#options.tableName
         };
 
         try {
@@ -43,7 +43,7 @@ class DynamoDBUpdator {
                     ReadCapacityUnits: 1,
                     WriteCapacityUnits: 1
                 },
-                TableName: this.#tableName
+                TableName: this.#options.tableName
             };
             let res = await this.#dynamodb.createTable(params).promise();
             return res;
@@ -67,7 +67,7 @@ class DynamoDBUpdator {
                 }
             },
             UpdateExpression: "SET #LUO = :x",
-            TableName: this.#tableName
+            TableName: this.#options.tableName
         };
 
         return this.#dynamodb.updateItem(params).promise();
@@ -86,7 +86,7 @@ class DynamoDBUpdator {
                     N: String(new Date().getTime())
                 }
             },
-            TableName: this.#tableName
+            TableName: this.#options.tableName
         };
         return this.#dynamodb.putItem(params).promise();
     }
@@ -98,7 +98,7 @@ class DynamoDBUpdator {
                     S: path
                 }
             },
-            TableName: this.#tableName
+            TableName: this.#options.tableName
         };
         return this.#dynamodb.getItem(params).promise();
     }
@@ -123,7 +123,7 @@ class DynamoDBUpdator {
                 }
             },
             UpdateExpression: "SET #A = :x, #DO = :y",
-            TableName: this.#tableName
+            TableName: this.#options.tableName
         };
 
         return this.#dynamodb.updateItem(params).promise();

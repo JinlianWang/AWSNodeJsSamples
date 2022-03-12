@@ -3,40 +3,24 @@ const sts = new AWS.STS();
 
 class CredentialsRetriever {
 
-    #info = {};
+    #options;
 
-    setAccountId(accountId) {
-        this.#info.accountId = accountId;
-        return this;
-    }
-
-    setRoleName(roleName) {
-        this.#info.roleName = roleName;
-        return this;
-    }
-
-    setResourceName(resourceName) {
-        this.#info.resourceName = resourceName;
-        return this;
-    }
-
-    setResourceTaggingRole(roleName) {
-        this.#info.resourceTaggingRole = roleName;
-        return this;
+    constructor(options) {
+        this.#options = Object.assign({}, options);
     }
 
     async retrieveCredentials() {
         let res;
-        if (this.#info.resourceName != null) {
+        if (this.#options.resourceName != null) {
             res = await this.#tagRole();
         }
 
-        res = await this.#assumeRole(this.#info.roleName);
+        res = await this.#assumeRole(this.#options.roleName);
         return res;
     }
 
     async #assumeRole(roleName) {
-        const accountId = this.#info.accountId;
+        const accountId = this.#options.accountId;
 
         if (roleName == null) {
             throw new Error("Role name not set!");
@@ -61,8 +45,8 @@ class CredentialsRetriever {
     }
 
     async #tagRole() {
-        const credentials = await this.#assumeRole(this.#info.resourceTaggingRole);
-        const parts = this.#info.roleName.split("/");
+        const credentials = await this.#assumeRole(this.#options.resourceTaggingRole);
+        const parts = this.#options.roleName.split("/");
         const roleName = parts[parts.length-1];
         let iam = new AWS.IAM(credentials);
         let res = await iam.tagRole({
@@ -70,12 +54,12 @@ class CredentialsRetriever {
             Tags: [
                 {
                     Key: "resourceName",
-                    Value: this.#info.resourceName
+                    Value: this.#options.resourceName
                 }
             ]
         }).promise();
 
-        console.log(`Tagging ${this.#info.roleName} successfully with response: ${res}.`);
+        console.log(`Tagging ${this.#options.roleName} successfully with response: ${res}.`);
         return res;
     }
 }

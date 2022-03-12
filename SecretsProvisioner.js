@@ -4,13 +4,15 @@ AWS.config.update({ region: 'us-east-1' });
 
 class SecretsProvisioner {
 
+    #options;
     #secretsmanager;
 
     constructor(options) {
+        this.#options = Object.assign({}, options);
         this.#secretsmanager = new AWS.SecretsManager(options);
     }
 
-    async createOrUpdateSecret(secretPathName, username, password) {
+    async createOrUpdateSecret(secretPathName, options) {
         let params = {
             SecretId: secretPathName
         };
@@ -23,7 +25,7 @@ class SecretsProvisioner {
             params = {
                 ClientRequestToken: uuid.v4(),
                 SecretId: secretPathName,
-                SecretString: `{\"username\":\"${username}\",\"password\":\"${password}\"}`
+                SecretString: `{\"username\":\"${options.username}\",\"password\":\"${options.password}\"}`
             };
             res = await this.#secretsmanager.putSecretValue(params).promise();
             console.log("Secret updated: ", res);
@@ -33,7 +35,7 @@ class SecretsProvisioner {
                 ClientRequestToken: uuid.v4(),
                 Description: "Test database secret created through Secrets Provisioner.",
                 Name: secretPathName,
-                SecretString: `{\"username\":\"${username}\",\"password\":\"${password}\"}`
+                SecretString: `{\"username\":\"${options.username}\",\"password\":\"${options.password}\"}`
             };
             let res = await this.#secretsmanager.createSecret(params).promise();
             console.log("Result of creating a new secret: ", res);
@@ -42,13 +44,13 @@ class SecretsProvisioner {
 
     }
 
-    async createSecret(secretPathName, username, password) {
+    async createSecret(secretPathName, options) {
         try {
             let params = {
                 ClientRequestToken: uuid.v4(),
                 Description: "Test database secret created through Secrets Provisioner.",
                 Name: secretPathName,
-                SecretString: `{\"username\":\"${username}\",\"password\":\"${password}\"}`
+                SecretString: `{\"username\":\"${options.username}\",\"password\":\"${options.password}\"}`
             };
             let res = await this.#secretsmanager.createSecret(params).promise();
             console.log("Result of creating a new secret: ", res);
@@ -58,12 +60,12 @@ class SecretsProvisioner {
         }
     }
 
-    async updateSecretValue(secretPathName, username, password) {
+    async updateSecretValue(secretPathName, options) {
         try {
             let params = {
                 ClientRequestToken: uuid.v4(),
                 SecretId: secretPathName,
-                SecretString: `{\"username\":\"${username}\",\"password\":\"${password}\"}`
+                SecretString: `{\"username\":\"${options.username}\",\"password\":\"${options.password}\"}`
             };
             let res = await this.#secretsmanager.putSecretValue(params).promise();
             console.log("Secret updated: ", res);
