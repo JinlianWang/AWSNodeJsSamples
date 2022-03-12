@@ -1,5 +1,4 @@
 const AWS = require('aws-sdk');
-const sts = new AWS.STS();
 
 class CredentialsRetriever {
 
@@ -32,6 +31,7 @@ class CredentialsRetriever {
 
         const roleArn = "arn:aws:iam::" + accountId + ":role/" + roleName;
 
+        const sts = new AWS.STS();
         const res = await sts.assumeRole({
             RoleArn: roleArn,
             RoleSessionName: "assumed-session"

@@ -1,8 +1,12 @@
+const AWS = require('aws-sdk');
 const { SecretsOpsController } = require('./SecretsOpsController');
 const utils = require('./Utils');
 
 
 exports.handler = async (event) => {
+
+    AWS.config.update({ region: 'us-east-1' });
+
     const serviceRole = process.env.SECRETS_SERVICE_ROLE;
     const resourceTaggingRole = process.env.SECRETS_TAGGING_ROLE;
     const tableName = process.env.DYNAMODB_TABLE_NAME;
@@ -40,14 +44,15 @@ exports.handler = async (event) => {
 };
 
 
+/*
 //Sandbox: 975156237701 
 
-/* const data = {
+const data = {
     "ops": "update",
     "accountId": "975156237701",
-    "secretName": "/rds/userg",
-    "username": "new4",
-    "password": "new4"
+    "secretName": "/rds/userb",
+    "username": "new6",
+    "password": "new6"
 };
 
 const event = {
@@ -59,7 +64,8 @@ const event = {
 exports.handler(event).then(res => {
     console.log("Response:", res);
 });
- */
+
+*/
 
 /*
 export AWS_PROFILE=admin

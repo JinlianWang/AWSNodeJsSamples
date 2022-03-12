@@ -131,7 +131,7 @@ class SecretsOpsController {
     }
 
     isRecordActive(existingRecord) {
-        return existingRecord && existingRecord.Item && existingRecord.Item.ARN && existingRecord.Item.Active.BOOL;
+        return existingRecord && existingRecord.Item && existingRecord.Item.ARN && (!existingRecord.Item.Active || existingRecord.Item.Active.BOOL);
     }
 }
 
