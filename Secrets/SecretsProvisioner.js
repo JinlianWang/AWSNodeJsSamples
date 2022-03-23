@@ -87,6 +87,20 @@ class SecretsProvisioner {
         }
     }
 
+    async readSecretValue(secretPathName) {
+        try {
+            let params = {
+                SecretId: secretPathName
+            };
+
+            let res = await this.#secretsmanager.getSecretValue(params).promise();
+            console.log("Secret read: ", res.ARN);
+            return { path: secretPathName, ARN: res.ARN, secretString: res.SecretString };
+        } catch (err) {
+            throw new Error("Secret reading failed: " + err);
+        }
+    }
+
     async getSecretInfo(secretPathName) {
         let params = {
             SecretId: secretPathName

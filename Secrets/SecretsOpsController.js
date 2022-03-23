@@ -50,7 +50,16 @@ class SecretsOpsController {
                     } else {
                         return utils.generateResponse(400, `Secret of ${data.secretName} does not exist in account of ${data.accountId}.`);
                     }
-
+                case "read": 
+                    if (this.isRecordActive(existingRecord)) { 
+                        res = await this.#handleOperationWithRetries();
+                        return utils.generateJsonResponse(200, {
+                            result: "Secret read",
+                            value: res.SecretString
+                        }, data);
+                    } else {
+                        return utils.generateResponse(400, `Secret of ${data.secretName} does not exist in account of ${data.accountId}.`);
+                    }                
                 case "delete":
                     if (this.isRecordActive(existingRecord)) {
                         res = await this.#handleOperationWithRetries();
@@ -87,6 +96,8 @@ class SecretsOpsController {
                         username: this.#options.username,
                         password: this.#options.password
                     });
+                } else if(ops == 'read') {
+                    return secretsProvisioner.readSecretValue(this.#options.secretName);
                 } else {
                     return secretsProvisioner.updateSecretValue(this.#options.secretName, {
                         username: this.#options.username,

@@ -30,7 +30,7 @@ utils.validateBody = function (body) {
         let data = JSON.parse(body);
         let statusCode, responseText;
 
-        if (data.ops != "create" && data.ops != "delete" && data.ops != "update") {
+        if (data.ops != "create" && data.ops != "delete" && data.ops != "update" && data.ops != "read") {
             statusCode = 400;
             responseText = "Operation of " + data.ops + "is not supported for POST http method.";
         }
