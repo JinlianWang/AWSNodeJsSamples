@@ -21,5 +21,3 @@ SELECT usename AS role_name,
 FROM pg_catalog.pg_user
 ORDER BY role_name desc;
 
-
-
