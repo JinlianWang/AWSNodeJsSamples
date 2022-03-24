@@ -1,0 +1,69 @@
+
+aws secretsmanager put-resource-policy --secret-id /rds/user2 --resource-policy file://deny.json
+aws secretsmanager put-resource-policy --secret-id /rds/user --resource-policy file://allow.json
+aws secretsmanager put-resource-policy --secret-id /rds/userb --resource-policy file://deny.json
+aws secretsmanager put-resource-policy --secret-id /rds/userb --resource-policy file://allow.json
+aws secretsmanager put-resource-policy --secret-id /rds/userb --resource-policy file://rds-proxy-permission.json
+aws secretsmanager put-resource-policy --secret-id /rds/userg --resource-policy file://rds-proxy-permission.json
+
+aws secretsmanager get-secret-value \
+--secret-id /rds/userb
+
+
+
+aws rds create-db-proxy \
+--db-proxy-name sunny-proxy \
+--engine-family POSTGRESQL \
+--auth SecretArn=arn:aws:secretsmanager:us-east-1:975156237701:secret:/rds/userg-ggcKv6,IAMAuth=REQUIRED SecretArn=arn:aws:secretsmanager:us-east-1:975156237701:secret:/rds/userb-HiSNS4,IAMAuth=REQUIRED \
+--role-arn arn:aws:iam::975156237701:role/serverless-framework-rds-proxy-exampl-RDSProxyRole-KUFRIZ4R68W \
+--vpc-subnet-ids subnet-07ecb87f81432b4d9 subnet-03f68704d66685881 subnet-0fefd1b83e8e66a98 subnet-0628de743a37ff24f \
+--vpc-security-group-ids sg-08a1e994b130d3feb \
+--require-tls
+
+aws rds register-db-proxy-targets --db-proxy-name sunny-proxy \
+--target-group-name default \
+--db-instance-identifiers rds-proxy-demo
+
+aws rds delete-db-proxy --db-proxy-name sunny-proxy
+
+
+aws rds stop-db-instance --db-instance-identifier rds-proxy-demo
+
+
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "deny",
+      "Action": "secretsmanager:GetSecretValue",
+      "Principal": {"AWS": "*"},
+      "Resource": "*"
+    }
+  ]
+}
+
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Effect": "allow",
+        "Action": "secretsmanager:GetSecretValue",
+        "Principal": {"AWS": "arn:aws:sts::730508922179:assumed-role/admin_role/sunnyrolename"},
+        "Resource": "*"
+      }
+    ]
+  }
+
+{
+  "Version": "2012-10-17",
+  "Statement": [    {
+    "Effect": "deny",
+    "Action": "secretsmanager:GetSecretValue",
+    "NotPrincipal": {"Service": "rds.amazonaws.com"},
+    "Resource": "*"
+  }
+  ]
+}
+
+
