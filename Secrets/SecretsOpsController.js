@@ -55,7 +55,7 @@ class SecretsOpsController {
                         res = await this.#handleOperationWithRetries();
                         return utils.generateJsonResponse(200, {
                             result: "Secret read",
-                            value: res.SecretString
+                            value: res.secretString
                         }, data);
                     } else {
                         return utils.generateResponse(400, `Secret of ${data.secretName} does not exist in account of ${data.accountId}.`);
