@@ -29,3 +29,5 @@ git clone https://github.com/auth0/node-saml
 npm install ./node-saml/
 node samlGenerator.js //To generate a saml
 ```
+
+To debug in node.js, run the ```node --inspect-brk <js file>``` and then launch Chrome new tab pointing to "chrome://inspect", and click the "Remote Target", which would open up a new Chrome Dev Tool window and pause at the first line. 
