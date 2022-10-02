@@ -1,4 +1,4 @@
-A project to play with SAML assertion. [node-saml](https://github.com/auth0/node-saml) is another public repo we used to general saml (see commands below). Directly include this repo in here, just for convenience as it is not published module. [Validate SAML Response](https://www.samltool.com/validate_response.php) is a good place to validate SAML assertion. 
+A project to play with SAML assertion. [node-saml](https://github.com/auth0/node-saml) is another public repo we used to general saml (see commands below). Directly include this repo in here, just for convenience as it is not published module. [Validate SAML Response](https://www.samltool.com/validate_response.php) is a good place to validate SAML assertion. [xml-crypto](https://github.com/yaronn/xml-crypto) is used by other module to validate xml signature, including this one used in this project, [Node Saml](https://github.com/Authress/saml-login.js). 
 
 ## Checks during SAML validation
 
