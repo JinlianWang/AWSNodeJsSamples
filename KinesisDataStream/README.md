@@ -22,7 +22,7 @@ SELECT * FROM "AwsDataCatalog"."my_database"."json" where "partition_4"='19' lim
 ### Commands
 
 
-* ``` aws kinesis create-stream --stream-name KinesisStreamPlayground --shard-count 1 √
+* ``` aws kinesis create-stream --stream-name KinesisStreamPlayground --shard-count 1 ```
 * ``` zip -r function_package.zip . ```
 * ``` aws lambda update-function-code --function-name arn:aws:lambda:us-east-1:804462227831:function:KinesisLambdaConsumerPlayground --zip-file fileb://function_package.zip ```
 * ``` aws lambda update-function-configuration --function-name arn:aws:lambda:us-east-1:804462227831:function:KinesisLambdaConsumerPlayground --environment "Variables={OUTPUT_FORMAT=json,S3_BUCKET=glueplayground-05-16-2023}" ```
