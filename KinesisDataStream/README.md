@@ -21,16 +21,16 @@ SELECT * FROM "AwsDataCatalog"."my_database"."json" where "partition_4"='19' lim
 
 ### Commands
 
-```
-* aws kinesis create-stream --stream-name KinesisStreamPlayground --shard-count 1
-* zip -r function_package.zip .
-* aws lambda update-function-code --function-name arn:aws:lambda:us-east-1:804462227831:function:KinesisLambdaConsumerPlayground --zip-file fileb://function_package.zip
-* aws lambda update-function-configuration --function-name arn:aws:lambda:us-east-1:804462227831:function:KinesisLambdaConsumerPlayground --environment "Variables={OUTPUT_FORMAT=json,S3_BUCKET=glueplayground-05-16-2023}"
-* aws lambda update-function-configuration --function-name arn:aws:lambda:us-east-1:804462227831:function:KinesisLambdaConsumerPlayground --environment "Variables={OUTPUT_FORMAT=parquet,S3_BUCKET=glueplayground-05-16-2023}"
-* aws lambda create-event-source-mapping --function-name KinesisLambdaConsumerPlayground --event-source-arn arn:aws:kinesis:us-east-1:804462227831:stream/KinesisStreamPlayground --starting-position LATEST
-* ./putRecords.sh KinesisStreamPlayground
-```
 
+* ``` aws kinesis create-stream --stream-name KinesisStreamPlayground --shard-count 1 √
+* ``` zip -r function_package.zip . ```
+* ``` aws lambda update-function-code --function-name arn:aws:lambda:us-east-1:804462227831:function:KinesisLambdaConsumerPlayground --zip-file fileb://function_package.zip ```
+* ``` aws lambda update-function-configuration --function-name arn:aws:lambda:us-east-1:804462227831:function:KinesisLambdaConsumerPlayground --environment "Variables={OUTPUT_FORMAT=json,S3_BUCKET=glueplayground-05-16-2023}" ```
+* ``` aws lambda update-function-configuration --function-name arn:aws:lambda:us-east-1:804462227831:function:KinesisLambdaConsumerPlayground --environment "Variables={OUTPUT_FORMAT=parquet,S3_BUCKET=glueplayground-05-16-2023}" ```
+* ``` aws lambda create-event-source-mapping --function-name KinesisLambdaConsumerPlayground --event-source-arn arn:aws:kinesis:us-east-1:804462227831:stream/KinesisStreamPlayground --starting-position LATEST ```
+* ``` ./putRecords.sh KinesisStreamPlayground ```
+
+### Misc
 
 Sunnys-iMac:KinesisDataStream jinlianwang$ aws kinesis create-stream --stream-name KinesisStreamPlayground --shard-count 1
 Sunnys-iMac:KinesisDataStream jinlianwang$ aws lambda create-event-source-mapping --function-name KinesisLambdaConsumerPlayground --event-source-arn arn:aws:kinesis:us-east-1:804462227831:stream/KinesisStreamPlayground --starting-position LATEST
