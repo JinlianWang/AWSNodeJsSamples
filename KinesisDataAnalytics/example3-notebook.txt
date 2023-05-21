@@ -1,0 +1,52 @@
+%flink.ssql
+
+CREATE TABLE orders_json (
+    InvoiceNo VARCHAR(16),
+    StockCode VARCHAR(8),
+    Description VARCHAR(64),
+    Quantity VARCHAR(32),
+    InvoiceDate VARCHAR(16),
+    UnitPrice VARCHAR(16),
+    Customer VARCHAR(16),
+    Country VARCHAR(16),
+    ArrivalTime AS PROCTIME()
+) WITH (
+    'connector' = 'kinesis',
+    'stream' = 'CadabraOrders',
+    'aws.region' = 'us-east-1',
+    'scan.stream.initpos' = 'LATEST',
+    'format' = 'json',
+    'json.timestamp-format.standard' = 'ISO-8601'
+);
+
+
+%flink.ssql(type=update)
+
+SELECT * FROM orders_json;
+
+
+%flink.ssql(type=update) 
+SELECT * FROM (SELECT CAST(COUNT(*) AS INTEGER) AS order_count 
+FROM orders_json 
+GROUP BY TUMBLE(ArrivalTime, INTERVAL '10' second))
+%flink.ssql
+
+CREATE TABLE order_count_table ( 
+    order_count INTEGER
+) WITH ( 
+    'connector' = 'kinesis', 
+    'stream' = 'OrderRateAlarms', 
+    'aws.region' = 'us-east-1', 
+    'scan.stream.initpos' = 'LATEST', 
+    'format' = 'json', 
+    'json.timestamp-format.standard' = 'ISO-8601'); 
+    
+
+    
+%flink.ssql(type=update)
+
+INSERT INTO order_count_table
+SELECT * FROM (SELECT CAST(COUNT(*) AS INTEGER) AS order_count 
+FROM orders_json 
+GROUP BY TUMBLE(ArrivalTime, INTERVAL '10' second))
+WHERE order_count >= 10;
